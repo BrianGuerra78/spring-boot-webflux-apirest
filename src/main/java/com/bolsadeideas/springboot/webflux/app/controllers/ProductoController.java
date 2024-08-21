@@ -2,7 +2,7 @@ package com.bolsadeideas.springboot.webflux.app.controllers;
 
 import java.io.File;
 import java.net.URI;
-import java.sql.Date;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -45,8 +45,8 @@ public class ProductoController {
 	@PostMapping("/v2")
 	public Mono<ResponseEntity<Producto>> crearConFoto(Producto producto, @RequestPart FilePart file) {
 		if (producto.getCreateAt() == null) {
-			producto.setCreateAt(new Date(2024, 02, 01));
-		}
+			producto.setCreateAt(new Date()); 
+			}
 		producto.setFoto(UUID.randomUUID().toString() + "-"
 				+ file.filename().replace(" ", "").replace(":", "").replace("\\", ""));
 		return file.transferTo(new File(path + producto.getFoto())).then(service.save(producto))
@@ -69,7 +69,7 @@ public class ProductoController {
 	public Mono<ResponseEntity<Flux<Producto>>> listar() {
 		// return Mono.just(ResponseEntity.ok(service.findAll()));
 
-		return Mono.just(ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON_UTF8).body(service.findAll()));
+		return Mono.just(ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(service.findAll()));
 	}
 
 	@GetMapping("/{id}")
@@ -87,12 +87,12 @@ public class ProductoController {
 
 		return monoProducto.flatMap(producto -> {
 			if (producto.getCreateAt() == null) {
-				producto.setCreateAt(new Date(2024, 02, 01));
+				producto.setCreateAt(new Date());
 			}
 			return service.save(producto).map(p -> {
 				respuesta.put("producto", p);
 				respuesta.put("mensaje", "Producto creado con exito");
-				respuesta.put("timestamp", new Date(0, 0, 0));
+				respuesta.put("timestamp", new Date());
 				return ResponseEntity.created(URI.create("/api/productos/".concat(p.getId())))
 						.contentType(MediaType.APPLICATION_JSON).body(respuesta);
 			});
@@ -117,7 +117,8 @@ public class ProductoController {
 			p.setCategoria(producto.getCategoria());
 			return service.save(p);
 		}).map(p -> ResponseEntity.created(URI.create("/api/productos/".concat(p.getId())))
-				.contentType(MediaType.APPLICATION_JSON).body(p)).defaultIfEmpty(ResponseEntity.notFound().build());
+				.contentType(MediaType.APPLICATION_JSON).body(p))
+				.defaultIfEmpty(ResponseEntity.notFound().build());
 	}
 
 	@DeleteMapping("/{id}")
